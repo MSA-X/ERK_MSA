@@ -1,13 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import TombolWhatsApp from "@/components/TombolWhatsApp";
-import { ambilDaftarProduk } from "@/lib/supabase/server";
+import { ambilProdukBerdasarkanId } from "@/lib/supabase/server";
 import { formatRupiah } from "@/lib/format";
 
 export default async function HalamanDetailProduk({ params }) {
   const { id } = await params;
-  const daftarProduk = await ambilDaftarProduk();
-  const produk = daftarProduk.find((item) => String(item.id) === id);
+  const produk = await ambilProdukBerdasarkanId(id);
 
   if (!produk) {
     notFound();

@@ -18,10 +18,18 @@ Build pertama gagal karena helper Supabase yang diimpor halaman belum dibuat. He
 ## US-02 Detail produk
 
 **Prompt:**
+[SENDIRI] Baca AGENTS.md, DESIGN.md, docs/PRD.md, docs/rancangan-teknis.md, dan docs/user-stories.md, lalu kerjakan hanya US-02. Buat atau perbaiki `/produk/[id]` dengan Next.js 16 App Router agar mengambil satu produk berdasarkan ID langsung dari Supabase di sisi server, menampilkan foto, kategori, nama, harga rupiah, dan deskripsi, serta memanggil `notFound()` jika produk tidak ada. Pastikan `params` di-await, kartu katalog menuju detail yang sesuai, desain tetap responsif, US-01 tidak berubah, dan `npm run build` berhasil. Uji ID 1, beberapa ID lain, ID 999999, format rupiah, serta tampilan desktop dan HP. Jangan menambah dependency, mengakses Supabase dari Client Component, menyimpan kredensial di source code, atau menjalankan Git.
 
 **Hasil:**
+Halaman `/produk/[id]` tetap menjadi Server Component dan sekarang memanggil `ambilProdukBerdasarkanId(id)`. Helper tersebut melakukan query langsung ke tabel `produk` dengan `.eq("id", id).maybeSingle()` dan hanya memilih kolom produk yang diperlukan. Halaman menggunakan `const { id } = await params`, menampilkan foto, kategori, nama, harga melalui `formatRupiah`, dan deskripsi. Hasil kosong diteruskan ke `notFound()` sehingga halaman 404 tampil. ID nonangka juga diperlakukan sebagai produk tidak ditemukan tanpa mengirim query ID yang tidak valid ke Supabase.
+
+Komponen `KartuProduk` sudah memiliki tautan `/produk/${produk.id}`, sehingga tidak memerlukan perubahan. Implementasi katalog US-01 dan tombol WhatsApp yang sudah ada tidak diubah.
 
 **Perbaikan:**
+- Ditemukan halaman detail sudah memakai data Supabase, tetapi masih mengambil seluruh daftar produk melalui `ambilDaftarProduk()` lalu mencari ID di memori. Ditambahkan helper server-only untuk mengambil satu produk langsung berdasarkan ID, lalu halaman detail diubah memakai helper tersebut. Tidak ada dependency atau kredensial baru yang ditambahkan.
+- `npm run build` berhasil tanpa error terkait US-02. Pemeriksaan statis memastikan halaman meng-await `params`, memanggil `notFound()`, tidak memakai data contoh atau query daftar, helper memakai filter ID dan `maybeSingle()`, serta kartu katalog membentuk URL detail yang benar. Satu perintah pemeriksaan statis awal gagal karena quoting pada perintah uji, bukan karena kode aplikasi; perintah diperbaiki dan pemeriksaan lulus.
+- Smoke test read-only membandingkan halaman dengan Supabase. `/produk/1`, `/produk/7`, dan `/produk/60` menghasilkan HTTP 200; foto, kategori, nama, harga, dan deskripsi sama dengan database. Harga tampil sebagai Rp 45.000, Rp 24.000, dan Rp 375.000. Kartu ketiga produk pada katalog mengarah ke detail yang sesuai. `/produk/999999` menghasilkan HTTP 404 dan halaman tidak ditemukan.
+- Pengujian visual melalui Chrome headless lulus pada desktop 1280 px dan emulasi viewport HP 390 px. Pada viewport 390 px, lebar dokumen tetap 390 px dan tidak ada elemen detail yang melampaui viewport. Screenshot kedua ukuran diperiksa dan tata letak tampil sesuai desain. Ini pengujian emulasi viewport browser; perangkat HP fisik tidak diuji.
 
 ## US-03 Pesan via WhatsApp
 
