@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import TombolWhatsApp from "@/components/TombolWhatsApp";
+import { TombolBandingkan } from "@/components/PerbandinganProduk";
 import { ambilProdukBerdasarkanId } from "@/lib/supabase/server";
 import { formatRupiah } from "@/lib/format";
 
@@ -29,7 +30,10 @@ export default async function HalamanDetailProduk({ params }) {
           {formatRupiah(produk.harga)}
         </p>
         <p className="max-w-prose leading-relaxed text-teks-lembut">{produk.deskripsi}</p>
-        <TombolWhatsApp produk={produk} />
+        <div className="flex max-w-sm flex-col gap-3">
+          <TombolWhatsApp produk={produk} />
+          <TombolBandingkan produkId={produk.id} />
+        </div>
       </div>
     </article>
   );
