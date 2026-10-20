@@ -71,10 +71,19 @@ Halaman login memeriksa pengguna melalui `auth.getUser()` dan mengarahkan sesi y
 ## US-05 Ganti password
 
 **Prompt:**
+[SENDIRI] Baca AGENTS.md, DESIGN.md, docs/PRD.md, docs/rancangan-teknis.md, docs/user-stories.md, dan PROMPTS.md, lalu kerjakan hanya US-05. Buat form `/admin/password` untuk password baru dan konfirmasi, validasi minimal 8 karakter dan kecocokan di server, verifikasi pengguna aktif dengan Supabase Auth, kemudian ubah password melalui `auth.updateUser()` dalam Server Action. Pengguna tanpa sesi harus ditolak oleh halaman dan action. Tampilkan pesan berhasil "Password berhasil diperbarui" atau pesan error yang aman. Jangan memakai Admin API, secret key, database manual, localStorage, URL, log, atau jurnal untuk menyimpan password; jangan membuat reset email atau proteksi global US-06. Pertahankan US-04, jalankan pengujian yang tersedia dan `npm run build`, serta catat keterbatasan pengujian dengan jujur.
 
 **Hasil:**
+Halaman `/admin/password` sekarang memeriksa pengguna aktif melalui `auth.getUser()` di server sebelum menampilkan form. Pengguna tanpa sesi diarahkan ke `/admin/login`. Form memakai komponen `Input` dan `Tombol` yang sudah tersedia, memiliki input password baru dan konfirmasi dengan batas minimal 8 karakter di HTML, lalu mengirim ke Server Action `gantiPasswordAdmin`.
+
+Server Action membuat client sesi berbasis cookie dan publishable key, memverifikasi pengguna lagi dengan `auth.getUser()`, lalu memvalidasi input kosong, panjang minimal 8 karakter, dan kecocokan kedua nilai. Hanya setelah semua pemeriksaan lulus action memanggil `auth.updateUser({ password })`. Hasil sukses mengarah ke status tetap yang menampilkan "Password berhasil diperbarui"; kegagalan memakai pesan Indonesia yang aman. Nilai password tidak dimasukkan ke URL, log aplikasi, jurnal, database manual, atau localStorage.
 
 **Perbaikan:**
+- Ditemukan halaman ganti password sebelumnya hanya berupa form tanpa action dan masih memuat `CatatanBelumAktif`. Form dihubungkan ke Server Action, pemeriksaan sesi ditambahkan pada halaman dan action, semua validasi wajib ditambahkan di server, pesan status ditambahkan, dan penanda belum aktif dihapus.
+- `npm run build` berhasil. Pemeriksaan statis memastikan `getUser()` dijalankan sebelum `updateUser()`, validasi server tersedia, action tidak memakai `SUPABASE_SECRET_KEY`, dan tidak ada pencatatan password.
+- Tanpa sesi, GET `/admin/password` menghasilkan HTTP 307 ke `/admin/login` dan form tidak dirender. Pemanggilan langsung Server Action tanpa cookie sesi menghasilkan HTTP 303 ke `/admin/login` sebelum validasi atau perubahan pengguna; URL redirect tidak memuat password.
+- Smoke test `/`, `/produk/1`, dan `/admin/login` menghasilkan HTTP 200. Pengujian login gagal melalui Server Action US-04 tetap menghasilkan redirect error generik dan password tidak masuk URL. Log server selama pengujian diperiksa dan tidak menampilkan nilai password.
+- Kredensial akun admin tidak tersedia di environment atau prompt. Karena itu membuka form setelah login, pengujian input kosong/kurang dari 8 karakter/konfirmasi berbeda pada sesi valid, perubahan password valid, pesan sukses dari perubahan nyata, logout, login dengan password baru, serta penolakan password lama belum diuji. Pengujian tersebut harus dilakukan dengan akun admin Supabase yang sudah ada; tidak ada password asli yang ditambahkan ke source code atau jurnal.
 
 ## US-06 Proteksi halaman admin
 

@@ -1,11 +1,31 @@
+import { redirect } from "next/navigation";
 import NavAdmin from "@/components/NavAdmin";
 import Input from "@/components/Input";
 import Tombol from "@/components/Tombol";
-import CatatanBelumAktif from "@/components/CatatanBelumAktif";
+import { gantiPasswordAdmin } from "@/app/admin/actions";
+import { buatClientSupabaseSesi } from "@/lib/supabase/session";
 
-// US-05: form ganti password belum berfungsi.
-// Tugas peserta: admin yang sudah login bisa mengganti password-nya, diproses di server.
-export default function HalamanGantiPassword() {
+const pesanStatus = {
+  "input-kosong": { teks: "Password baru dan konfirmasi wajib diisi.", berhasil: false },
+  "terlalu-pendek": { teks: "Password baru minimal 8 karakter.", berhasil: false },
+  "tidak-sama": { teks: "Password baru dan konfirmasi harus sama.", berhasil: false },
+  gagal: { teks: "Password belum dapat diperbarui. Coba lagi beberapa saat.", berhasil: false },
+  berhasil: { teks: "Password berhasil diperbarui", berhasil: true },
+};
+
+export default async function HalamanGantiPassword({ searchParams }) {
+  const supabase = await buatClientSupabaseSesi();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/admin/login");
+  }
+
+  const { status } = await searchParams;
+  const pesan = pesanStatus[status] ?? null;
+
   return (
     <div className="flex flex-col gap-6 py-8">
       <NavAdmin />
@@ -15,7 +35,7 @@ export default function HalamanGantiPassword() {
           Ganti password bawaan segera setelah pertama kali masuk. Minimal 8 karakter.
         </p>
       </div>
-      <form className="flex max-w-sm flex-col gap-4">
+      <form action={gantiPasswordAdmin} className="flex max-w-sm flex-col gap-4">
         <Input
           label="Password baru"
           name="password_baru"
@@ -32,11 +52,15 @@ export default function HalamanGantiPassword() {
           minLength={8}
           required
         />
+        {pesan ? (
+          <p className={`text-sm ${pesan.berhasil ? "text-utama" : "text-bahaya"}`} role="status">
+            {pesan.teks}
+          </p>
+        ) : null}
         <Tombol type="submit" className="self-start">
           Simpan password
         </Tombol>
       </form>
-      <CatatanBelumAktif>Ganti password belum berfungsi: lihat US-05.</CatatanBelumAktif>
     </div>
   );
 }
