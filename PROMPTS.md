@@ -52,10 +52,21 @@ Detail produk meneruskan produk hasil helper Supabase server yang sudah ada ke t
 ## US-04 Login admin
 
 **Prompt:**
+[SENDIRI] Baca AGENTS.md, DESIGN.md, docs/PRD.md, docs/rancangan-teknis.md, docs/user-stories.md, dan PROMPTS.md, lalu kerjakan hanya US-04. Buat login admin dengan email dan password melalui Supabase Auth di Server Action dan kelola sesi cookie memakai `@supabase/ssr` serta `SUPABASE_PUBLISHABLE_KEY`. Login berhasil harus menuju `/admin`; kegagalan harus menampilkan pesan aman. Pengguna yang sudah login dan membuka `/admin/login` harus dialihkan ke `/admin`. Aktifkan tombol keluar agar mengakhiri sesi dan menuju `/admin/login`. Jangan membuat registrasi, menyimpan token di localStorage, memakai secret key untuk login, mengerjakan proteksi US-06, memasang dependency, atau menjalankan Git. Uji kredensial valid, password salah, email tidak terdaftar, input kosong, redirect, logout, persistensi sesi, dan `npm run build`, serta catat hanya hasil yang benar-benar diuji.
 
 **Hasil:**
+Halaman `/admin/login` sekarang memiliki form email dan password yang mengirim data langsung ke Server Action `masukAdmin`. Action melakukan validasi input di server, memanggil `supabase.auth.signInWithPassword`, menyimpan sesi melalui cookie yang dikelola `@supabase/ssr`, dan mengarahkan login berhasil ke `/admin`. Kesalahan kredensial dan gangguan layanan dipetakan ke pesan Indonesia yang tetap generik sehingga detail internal tidak tampil.
+
+Client sesi dibuat per request menggunakan `SUPABASE_URL` dan `SUPABASE_PUBLISHABLE_KEY` dari environment server. Cookie dibaca dan ditulis melalui `cookies()` Next.js 16; tidak ada Supabase client pada Client Component, token di localStorage, kredensial hardcode, service-role key untuk login, atau fitur registrasi.
+
+Halaman login memeriksa pengguna melalui `auth.getUser()` dan mengarahkan sesi yang sudah login ke `/admin`. Tombol "Keluar" di `NavAdmin` sekarang berupa form Server Action yang memanggil `auth.signOut()` lalu mengarahkan ke `/admin/login`. Proteksi seluruh rute admin tidak dibuat karena merupakan US-06.
 
 **Perbaikan:**
+- Ditemukan form login dan tombol keluar sebelumnya hanya berupa tampilan tanpa action, serta masih memuat penanda `CatatanBelumAktif`. Ditambahkan helper sesi Supabase SSR, dua Server Action untuk masuk dan keluar, pesan error aman, pemeriksaan sesi pada halaman login, dan form logout. Penanda belum aktif khusus login dihapus.
+- `npm run build` berhasil. Pemeriksaan statis memastikan autentikasi memakai Server Action, `@supabase/ssr`, publishable key, dan cookie server; source autentikasi tidak memakai `SUPABASE_SECRET_KEY`.
+- Smoke test menghasilkan HTTP 200 untuk `/`, `/produk/1`, `/admin`, dan `/admin/login`, sehingga US-01 sampai US-03 tetap dapat dibuka. Form login server-rendered memuat email, password, dan tombol "Masuk" tanpa catatan belum aktif.
+- Pengujian browser untuk input kosong berhasil: Server Action mengarahkan ke `/admin/login?error=input-kosong` dan menampilkan "Email dan password wajib diisi." Pengujian email yang tidak terdaftar berhasil: halaman menampilkan pesan generik "Email atau password salah", tidak menampilkan email, password, detail error Supabase, atau membuat cookie autentikasi.
+- Tombol keluar terbukti tersambung ke Server Action dan mengarahkan browser tanpa sesi ke `/admin/login`. Kredensial akun admin tidak tersedia di environment atau prompt, sehingga login valid, password salah pada akun yang benar-benar terdaftar, redirect setelah login valid, pengalihan pengguna yang sudah login, pengakhiran sesi terautentikasi, dan persistensi sesi setelah reload belum diuji. Pengujian tersebut perlu dilakukan memakai akun admin yang sudah dibuat di Supabase Authentication; kredensial tidak ditambahkan ke source code.
 
 ## US-05 Ganti password
 
