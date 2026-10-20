@@ -3,9 +3,12 @@ import NavAdmin from "@/components/NavAdmin";
 import FormProduk from "@/components/FormProduk";
 import CatatanBelumAktif from "@/components/CatatanBelumAktif";
 import { cariProdukContoh } from "@/lib/data-contoh";
+import { wajibAdmin } from "@/lib/supabase/auth";
 
 // US-09 (bonus di jalur offline): ubah produk.
 export default async function HalamanUbahProduk({ params }) {
+  await wajibAdmin();
+
   const { id } = await params;
   const produk = cariProdukContoh(id);
 

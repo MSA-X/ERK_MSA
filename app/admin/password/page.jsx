@@ -1,9 +1,8 @@
-import { redirect } from "next/navigation";
 import NavAdmin from "@/components/NavAdmin";
 import Input from "@/components/Input";
 import Tombol from "@/components/Tombol";
 import { gantiPasswordAdmin } from "@/app/admin/actions";
-import { buatClientSupabaseSesi } from "@/lib/supabase/session";
+import { wajibAdmin } from "@/lib/supabase/auth";
 
 const pesanStatus = {
   "input-kosong": { teks: "Password baru dan konfirmasi wajib diisi.", berhasil: false },
@@ -14,14 +13,7 @@ const pesanStatus = {
 };
 
 export default async function HalamanGantiPassword({ searchParams }) {
-  const supabase = await buatClientSupabaseSesi();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/admin/login");
-  }
+  await wajibAdmin();
 
   const { status } = await searchParams;
   const pesan = pesanStatus[status] ?? null;

@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { wajibAdmin } from "@/lib/supabase/auth";
 import { buatClientSupabaseSesi } from "@/lib/supabase/session";
 
 export async function masukAdmin(formData) {
@@ -40,15 +41,7 @@ export async function keluarAdmin() {
 }
 
 export async function gantiPasswordAdmin(formData) {
-  const supabase = await buatClientSupabaseSesi();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError || !user) {
-    redirect("/admin/login");
-  }
+  const { supabase } = await wajibAdmin();
 
   const passwordBaru = String(formData.get("password_baru") ?? "");
   const konfirmasiPassword = String(formData.get("konfirmasi_password") ?? "");

@@ -1,9 +1,12 @@
 import NavAdmin from "@/components/NavAdmin";
 import FormProduk from "@/components/FormProduk";
 import CatatanBelumAktif from "@/components/CatatanBelumAktif";
+import { wajibAdmin } from "@/lib/supabase/auth";
 
 // US-08 (bonus di jalur offline): tambah produk.
-export default function HalamanTambahProduk() {
+export default async function HalamanTambahProduk() {
+  await wajibAdmin();
+
   return (
     <div className="flex flex-col gap-6 py-8">
       <NavAdmin />

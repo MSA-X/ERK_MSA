@@ -88,10 +88,22 @@ Server Action membuat client sesi berbasis cookie dan publishable key, memverifi
 ## US-06 Proteksi halaman admin
 
 **Prompt:**
+[SENDIRI] Baca AGENTS.md, DESIGN.md, docs/PRD.md, docs/rancangan-teknis.md, docs/user-stories.md, docs/checklist-keamanan.md, dan PROMPTS.md, lalu kerjakan hanya US-06. Lindungi `/admin` beserta seluruh subhalamannya, kecuali `/admin/login`, memakai Proxy Next.js 16, Supabase Auth, `@supabase/ssr`, cookie server, dan `auth.getUser()`. Tangani refresh cookie, hindari redirect loop, tambahkan pemeriksaan autentikasi pada Server Component dan setiap Server Action yang mengubah data, pertahankan US-01 sampai US-05, jalankan pengujian tanpa dan dengan sesi jika kredensial tersedia, serta jalankan `npm run build` tanpa mengarang hasil pengujian.
 
 **Hasil:**
+`proxy.js` di root project sekarang mencocokkan seluruh `/admin/:path*`, membuat client Supabase SSR memakai `SUPABASE_URL` dan `SUPABASE_PUBLISHABLE_KEY`, memverifikasi pengguna melalui `auth.getUser()`, serta meneruskan pembaruan cookie ke request dan response. Pengguna tanpa sesi diarahkan ke `/admin/login`, sedangkan pengguna terautentikasi yang membuka halaman login diarahkan ke `/admin`.
+
+Helper server `wajibAdmin()` ditambahkan untuk verifikasi berlapis. Helper ini dipakai oleh halaman `/admin`, `/admin/password`, `/admin/produk/baru`, dan `/admin/produk/[id]/ubah`, sehingga halaman tidak hanya mengandalkan Proxy. Server Action ganti password juga memakai helper tersebut sebelum membaca input atau memanggil `auth.updateUser()`. Saat ini belum ada Server Action tambah, ubah, atau hapus produk; form produk masih merupakan fitur US-08/US-09 yang belum aktif, sehingga tidak ada endpoint mutasi produk yang dapat dipanggil langsung.
 
 **Perbaikan:**
+- Ditemukan halaman utama admin, tambah produk, dan ubah produk belum memiliki pemeriksaan sesi. Ditambahkan pemeriksaan server bersama pada seluruh halaman admin yang dilindungi. Keterangan lama bahwa halaman admin belum terlindungi dihapus, sedangkan penanda data contoh US-07 tetap dipertahankan.
+- Ditemukan belum ada Proxy Next.js 16. Ditambahkan `proxy.js` dengan matcher khusus rute admin, pengecualian login, verifikasi `getUser()`, perilaku gagal-tertutup ketika verifikasi bermasalah, serta penyalinan cookie hasil refresh ke response termasuk response redirect.
+- `npm run build` berhasil pada Next.js 16.3.8. Build mengenali semua halaman admin sebagai route dinamis dan mengenali `Proxy (Middleware)` tanpa error.
+- Tanpa cookie sesi, pengujian HTTP produksi untuk `/admin`, `/admin/password`, `/admin/produk/baru`, dan `/admin/produk/1/ubah` masing-masing menghasilkan HTTP 307 ke `/admin/login`. `/admin/login` menghasilkan HTTP 200. Mengikuti redirect dari `/admin` berakhir di `/admin/login` dengan HTTP 200, sehingga tidak ditemukan redirect loop.
+- Pemanggilan langsung Server Action `gantiPasswordAdmin` tanpa cookie melalui endpoint login menghasilkan HTTP 303 ke `/admin/login`. Ini menguji pemeriksaan di dalam action secara terpisah dari proteksi URL halaman; operasi perubahan pengguna tidak dijalankan.
+- Pemeriksaan source memastikan seluruh halaman admin yang tersedia memanggil `wajibAdmin()`, action perubahan password memverifikasi pengguna, dan kode autentikasi tidak memakai `NEXT_PUBLIC_`, `SUPABASE_SECRET_KEY`, atau `localStorage`. Tidak ditemukan Server Action mutasi produk karena fitur tambah, ubah, dan hapus belum diimplementasikan.
+- Smoke test produksi dengan koneksi Supabase menghasilkan HTTP 200 untuk `/` dan `/produk/1`; halaman login juga HTTP 200. Build seluruh route berhasil, sehingga tidak ditemukan regresi build pada US-01 sampai US-05. Uji awal di sandbox sempat menghasilkan `fetch failed` pada halaman publik karena akses jaringan dibatasi; pengujian diulang dengan akses jaringan dan berhasil.
+- Kredensial akun admin tidak tersedia di environment atau prompt. Karena itu login valid, akses seluruh halaman dengan sesi valid, persistensi sesi setelah reload, refresh cookie sesi nyata, logout dari sesi terautentikasi, dan penolakan akses setelah logout belum diuji. Pengujian tersebut tetap memerlukan akun admin Supabase yang sudah ada; tidak ada kredensial yang ditambahkan ke source code atau jurnal.
 
 ## Kustomisasi toko
 
