@@ -55,6 +55,17 @@ Build pertama gagal karena helper Supabase yang diimpor halaman belum dibuat. He
 
 **Perbaikan:**
 
+## Kustomisasi toko
+
+**Prompt:**
+Kerjakan Langkah 8: ubah identitas toko di `lib/toko.js` menjadi ERK MSA, tagline "Yang di cari , Ada disini", alamat "Jl Gerhana 3", jam buka "08:00", dan WhatsApp 082384298003 dalam format internasional. Periksa di localhost:3000 dan catat hasilnya.
+
+**Hasil:**
+Identitas toko diperbarui dengan struktur objek dan nama properti tetap. Nomor WhatsApp diubah menjadi 6282384298003. Pemeriksaan `http://localhost:3000` menghasilkan HTTP 200; nama, tagline, alamat, dan jam buka tampil sesuai permintaan, serta nama lama tidak ditemukan.
+
+**Perbaikan:**
+Tidak ada error saat pemeriksaan lokal dan tidak diperlukan perbaikan tambahan.
+
 ## Debugging dan fitur bonus
 
 Tambahkan bagian baru untuk setiap error yang kamu perbaiki atau fitur bonus yang kamu kerjakan.
